@@ -1,0 +1,1023 @@
+<!DOCTYPE html<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Firestore by Matrix — Apps worth the install.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#13161B;
+    --ink-2:#1B1F27;
+    --ink-3:#21262F;
+    --paper:#F4F1E8;
+    --muted:#8C93A6;
+    --signal:#FF6A3D;
+    --mint:#7FE6C0;
+    --line: rgba(244,241,232,0.12);
+    --line-strong: rgba(244,241,232,0.22);
+    --radius: 20px;
+    --maxw: 1180px;
+  }
+
+  *,*::before,*::after{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--ink);
+    color:var(--paper);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  img,svg{display:block;max-width:100%;}
+  a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;cursor:pointer;}
+  ul{list-style:none;margin:0;padding:0;}
+
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 22px;}
+  .mono{font-family:'JetBrains Mono', monospace;}
+  .display{font-family:'Sora', sans-serif;}
+
+  ::selection{background:var(--signal); color:var(--ink);}
+
+  :focus-visible{
+    outline:2px solid var(--signal);
+    outline-offset:3px;
+    border-radius:4px;
+  }
+
+  /* ---------- NAV ---------- */
+  .nav{
+    position:sticky; top:0; z-index:50;
+    backdrop-filter:blur(14px) saturate(140%);
+    background:rgba(19,22,27,0.78);
+    border-bottom:1px solid var(--line);
+    opacity:0; transform:translateY(-16px);
+    animation: drop-in 0.7s cubic-bezier(.2,.8,.2,1) forwards;
+  }
+  .nav-inner{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 22px; max-width:var(--maxw); margin:0 auto;
+  }
+  .logo{
+    display:flex; align-items:center; gap:8px;
+    font-family:'Sora', sans-serif; font-weight:800; font-size:1.15rem;
+    letter-spacing:0.01em;
+  }
+  .logo-dot{
+    width:9px; height:9px; border-radius:50%;
+    background:var(--signal);
+    box-shadow:0 0 0 4px rgba(255,106,61,0.18);
+    animation: pulse-dot 2.4s ease-in-out infinite;
+  }
+  .nav-links{
+    display:none; gap:30px;
+    font-size:0.92rem; color:var(--muted);
+  }
+  .nav-links a{ transition:color .2s ease; }
+  .nav-links a:hover{ color:var(--paper); }
+  .nav-actions{ display:flex; align-items:center; gap:10px; }
+  .icon-btn{
+    background:transparent; border:1px solid var(--line);
+    color:var(--paper); width:38px; height:38px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    transition: border-color .2s ease, transform .2s ease;
+  }
+  .icon-btn:hover{ border-color:var(--line-strong); transform:translateY(-1px); }
+  .icon-btn.small{ width:32px; height:32px; }
+  .menu-btn{ display:flex; }
+  @media(min-width:760px){
+    .nav-links{ display:flex; }
+    .menu-btn{ display:none; }
+  }
+
+  .mobile-menu{
+    position:fixed; inset:0; z-index:60;
+    background:var(--ink);
+    display:flex; flex-direction:column;
+    padding:22px;
+    transform:translateX(100%);
+    transition: transform .45s cubic-bezier(.2,.8,.2,1);
+  }
+  .mobile-menu.open{ transform:translateX(0); }
+  .mobile-menu-top{ display:flex; justify-content:space-between; align-items:center; margin-bottom:48px; }
+  .mobile-menu ul{ display:flex; flex-direction:column; gap:6px; }
+  .mobile-menu a{
+    font-family:'Sora', sans-serif; font-size:2rem; font-weight:700;
+    padding:14px 0; border-bottom:1px solid var(--line);
+  }
+
+  /* ---------- HERO ---------- */
+  .hero{ padding:64px 0 0; position:relative; }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:0.74rem; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--mint); padding:6px 12px;
+    border:1px solid var(--line); border-radius:999px;
+    opacity:0; animation: fade-up 0.7s ease forwards; animation-delay:0.15s;
+  }
+  .eyebrow .blink{
+    width:6px; height:6px; border-radius:50%; background:var(--mint);
+    animation: pulse-dot 1.6s ease-in-out infinite;
+  }
+  .hero h1{
+    font-family:'Sora', sans-serif; font-weight:800;
+    font-size:clamp(2.5rem, 9vw, 5rem); line-height:1.02; letter-spacing:-0.02em;
+    margin:22px 0 0;
+  }
+  .hero h1 .line{ display:block; overflow:hidden; }
+  .hero h1 .line span{
+    display:block; transform:translateY(110%);
+    animation: line-up 0.8s cubic-bezier(.2,.8,.2,1) forwards;
+  }
+  .hero h1 .line:nth-child(2) span{ animation-delay:0.12s; color:var(--signal); }
+  .hero h1 .line:nth-child(1) span{ animation-delay:0.02s; }
+
+  .hero p.lede{
+    max-width:480px; color:var(--muted); font-size:1.05rem; line-height:1.6;
+    margin:22px 0 0;
+    opacity:0; animation: fade-up 0.7s ease forwards; animation-delay:0.45s;
+  }
+
+  .search-bar{
+    margin-top:30px; display:flex; gap:10px;
+    opacity:0; animation: fade-up 0.7s ease forwards; animation-delay:0.58s;
+  }
+  .search-bar input{
+    flex:1; min-width:0;
+    background:var(--ink-2); border:1px solid var(--line);
+    color:var(--paper); padding:15px 18px; border-radius:14px;
+    font-family:'Inter', sans-serif; font-size:0.95rem;
+  }
+  .search-bar input::placeholder{ color:var(--muted); }
+  .search-bar input:focus{ border-color:var(--line-strong); }
+  .btn-primary{
+    background:var(--signal); color:var(--ink); border:none;
+    padding:0 22px; border-radius:14px; font-weight:600; font-size:0.95rem;
+    transition: transform .2s ease, box-shadow .2s ease;
+    white-space:nowrap;
+  }
+  .btn-primary:hover{ transform:translateY(-2px); box-shadow:0 10px 24px rgba(255,106,61,0.28); }
+  .btn-primary:active{ transform:translateY(0); }
+  .btn-ghost{
+    background:transparent; border:1px solid var(--line-strong); color:var(--paper);
+    padding:11px 18px; border-radius:12px; font-size:0.9rem;
+    transition: border-color .2s ease, background .2s ease;
+  }
+  .btn-ghost:hover{ background:var(--ink-3); }
+
+  .ticker{
+    margin-top:54px; border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+    padding:14px 0; overflow:hidden;
+    opacity:0; animation: fade-in 0.8s ease forwards; animation-delay:0.8s;
+  }
+  .ticker-track{ display:flex; width:max-content; gap:14px; animation: marquee 26s linear infinite; }
+  .ticker-chip{
+    font-family:'JetBrains Mono', monospace; font-size:0.78rem;
+    letter-spacing:0.06em; text-transform:uppercase; color:var(--muted);
+    border:1px solid var(--line); border-radius:999px; padding:8px 16px; white-space:nowrap;
+    display:flex; align-items:center; gap:8px;
+  }
+  .ticker-chip::before{ content:'—'; color:var(--signal); }
+
+  /* ---------- SECTION GENERIC ---------- */
+  section{ padding:88px 0; }
+  .section-head{ display:flex; flex-direction:column; gap:10px; margin-bottom:38px; }
+  .section-eyebrow{
+    font-family:'JetBrains Mono', monospace; font-size:0.74rem;
+    letter-spacing:0.14em; text-transform:uppercase; color:var(--signal);
+  }
+  .section-head h2{
+    font-family:'Sora', sans-serif; font-weight:700;
+    font-size:clamp(1.6rem, 4.2vw, 2.4rem); margin:0; letter-spacing:-0.01em;
+  }
+  .section-head p{ color:var(--muted); margin:0; max-width:520px; font-size:0.98rem; }
+
+  .reveal{
+    opacity:0; transform:translateY(26px);
+    transition: opacity .7s cubic-bezier(.2,.8,.2,1), transform .7s cubic-bezier(.2,.8,.2,1);
+  }
+  .reveal.is-visible{ opacity:1; transform:translateY(0); }
+
+  /* ---------- APP CARD ---------- */
+  .app-icon{
+    border-radius:18px; display:flex; align-items:center; justify-content:center;
+    font-family:'Sora', sans-serif; font-weight:800; color:rgba(255,255,255,0.92);
+    flex-shrink:0;
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.25), 0 8px 20px rgba(0,0,0,0.35);
+  }
+  .card{
+    background:var(--ink-2); border:1px solid var(--line); border-radius:var(--radius);
+    padding:22px; display:flex; flex-direction:column; gap:14px;
+    transition: border-color .25s ease, transform .25s ease, box-shadow .25s ease;
+    opacity:0; transform:scale(0.92);
+    animation: power-on 0.6s cubic-bezier(.2,.8,.2,1) forwards;
+    animation-delay: calc(0.9s + (var(--d, 0) * 0.1s));
+  }
+  .card:hover{ border-color:var(--line-strong); transform:translateY(-4px); box-shadow:0 16px 34px rgba(0,0,0,0.35); }
+  .card-top{ display:flex; align-items:flex-start; gap:14px; }
+  .card .app-icon{ width:50px; height:50px; font-size:1.25rem; }
+  .card-feature .app-icon{ width:64px; height:64px; font-size:1.6rem; border-radius:20px;}
+  .card-name{ font-family:'Sora', sans-serif; font-weight:700; font-size:1.05rem; }
+  .card-tag{
+    display:inline-block; margin-top:4px;
+    font-family:'JetBrains Mono', monospace; font-size:0.68rem;
+    letter-spacing:0.08em; text-transform:uppercase; color:var(--mint);
+    border:1px solid var(--line); border-radius:999px; padding:3px 9px;
+  }
+  .card-desc{ color:var(--muted); font-size:0.92rem; line-height:1.55; flex:1; }
+  .card-feature .card-desc{ font-size:1rem; }
+  .card-meta{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    font-family:'JetBrains Mono', monospace; font-size:0.76rem; color:var(--muted);
+    border-top:1px solid var(--line); padding-top:14px;
+  }
+  .get-btn{
+    background:transparent; border:1px solid var(--line-strong); color:var(--paper);
+    font-family:'JetBrains Mono', monospace; font-weight:600; font-size:0.74rem;
+    letter-spacing:0.08em; text-transform:uppercase;
+    padding:7px 14px; border-radius:999px; flex-shrink:0;
+    transition: background .2s ease, color .2s ease, border-color .2s ease;
+  }
+  .get-btn:hover{ background:var(--signal); border-color:var(--signal); color:var(--ink); }
+  .get-btn.got{ background:var(--mint); border-color:var(--mint); color:var(--ink); }
+
+  .bento{ display:grid; grid-template-columns:1fr; gap:16px; }
+  @media(min-width:760px){
+    .bento{ grid-template-columns:repeat(4, 1fr); grid-auto-rows:1fr; grid-auto-flow:dense; }
+    .bento .card-feature{ grid-column:span 2; grid-row:span 2; }
+  }
+
+  .empty-state{
+    grid-column:1/-1; text-align:center; padding:46px 20px; color:var(--muted);
+    border:1px dashed var(--line-strong); border-radius:18px; font-size:0.95rem;
+  }
+
+  /* ---------- CAROUSEL ---------- */
+  .carousel{
+    display:flex; gap:14px; overflow-x:auto; padding:6px 22px 18px;
+    margin:0 -22px; scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch;
+  }
+  .carousel::-webkit-scrollbar{ height:0; }
+  .carousel .card{ min-width:190px; scroll-snap-align:start; }
+
+  /* ---------- SPOTLIGHT ---------- */
+  .spotlight{ display:grid; grid-template-columns:1fr; gap:48px; align-items:center; }
+  @media(min-width:860px){ .spotlight{ grid-template-columns:0.85fr 1.15fr; } }
+  .phone{
+    width:230px; height:470px; margin:0 auto;
+    border-radius:42px; border:8px solid #2A2F3A; background:#0E1014;
+    position:relative; overflow:hidden; box-shadow:0 30px 60px rgba(0,0,0,0.5);
+  }
+  .phone::before{
+    content:''; position:absolute; top:14px; left:50%; transform:translateX(-50%);
+    width:70px; height:18px; background:#2A2F3A; border-radius:12px; z-index:2;
+  }
+  .phone-screen{
+    position:absolute; inset:0;
+    background:
+      radial-gradient(circle at 30% 20%, rgba(244,114,182,0.55), transparent 50%),
+      radial-gradient(circle at 70% 70%, rgba(251,146,60,0.5), transparent 55%),
+      linear-gradient(160deg, #1c1f29, #2a1e2c);
+  }
+  .phone-blob{ position:absolute; border-radius:50%; filter:blur(2px); animation: float 7s ease-in-out infinite; }
+  .b1{ width:70px; height:70px; background:rgba(244,241,232,0.16); top:60px; left:24px; }
+  .b2{ width:46px; height:46px; background:rgba(244,241,232,0.12); top:200px; right:30px; animation-delay:1.2s; }
+  .b3{ width:90px; height:90px; background:rgba(244,241,232,0.1); bottom:60px; left:40px; animation-delay:2.4s; }
+
+  .spotlight-text .section-eyebrow{ margin-bottom:8px; display:block; }
+  .spotlight-text h2{ font-family:'Sora', sans-serif; font-weight:700; font-size:clamp(1.7rem,4vw,2.3rem); margin:0 0 16px; }
+  .spotlight-text p{ color:var(--muted); line-height:1.7; margin:0 0 22px; }
+  .feature-list{ display:flex; flex-direction:column; gap:12px; margin-bottom:28px; }
+  .feature-list li{ display:flex; gap:10px; font-size:0.95rem; }
+  .feature-list li::before{ content:'—'; color:var(--signal); font-family:'JetBrains Mono', monospace; }
+
+  /* ---------- CATEGORY GRID ---------- */
+  .cat-grid{ display:grid; grid-template-columns:repeat(2, 1fr); gap:14px; }
+  @media(min-width:700px){ .cat-grid{ grid-template-columns:repeat(3, 1fr); } }
+  .cat-tile{
+    background:var(--ink-2); border:1px solid var(--line); border-radius:18px;
+    padding:22px; display:flex; flex-direction:column; gap:36px;
+    transition: transform .2s ease, border-color .2s ease;
+  }
+  .cat-tile:hover{ transform:translateY(-3px); border-color:var(--line-strong); }
+  .cat-glyph{ width:36px; height:36px; border-radius:10px; }
+  .cat-tile h3{ font-family:'Sora', sans-serif; font-size:1rem; margin:0 0 4px; }
+  .cat-tile span{ font-family:'JetBrains Mono', monospace; font-size:0.78rem; color:var(--muted); }
+
+  /* ---------- STATS STRIP ---------- */
+  .stats{ background:var(--ink-2); border-top:1px solid var(--line); border-bottom:1px solid var(--line); padding:48px 0; }
+  .stats-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:30px; }
+  @media(min-width:700px){ .stats-grid{ grid-template-columns:repeat(4,1fr); } }
+  .stat b{
+    display:block; font-family:'JetBrains Mono', monospace; font-weight:600;
+    font-size:clamp(1.6rem,4vw,2.1rem); color:var(--mint);
+  }
+  .stat span{ color:var(--muted); font-size:0.82rem; letter-spacing:0.04em; text-transform:uppercase; }
+
+  /* ---------- FOOTER ---------- */
+  footer{ padding:80px 0 36px; }
+  .footer-top{ display:flex; flex-direction:column; gap:24px; padding-bottom:48px; margin-bottom:40px; border-bottom:1px solid var(--line); }
+  @media(min-width:760px){ .footer-top{ flex-direction:row; justify-content:space-between; align-items:flex-end; } }
+  .footer-top h2{ font-family:'Sora', sans-serif; font-weight:700; font-size:clamp(1.6rem,4.4vw,2.1rem); margin:0 0 8px; max-width:360px; }
+  .footer-top p{ color:var(--muted); margin:0; max-width:340px; }
+  .newsletter{ display:flex; gap:10px; min-width:280px; }
+  .newsletter input{
+    flex:1; background:var(--ink-2); border:1px solid var(--line); color:var(--paper);
+    padding:14px 16px; border-radius:12px; font-family:'Inter',sans-serif;
+  }
+  .footer-cols{ display:grid; grid-template-columns:repeat(2,1fr); gap:32px; margin-bottom:48px; }
+  @media(min-width:700px){ .footer-cols{ grid-template-columns:repeat(4,1fr); } }
+  .footer-cols h4{
+    font-family:'JetBrains Mono', monospace; font-size:0.74rem; letter-spacing:0.1em;
+    text-transform:uppercase; color:var(--muted); margin:0 0 14px;
+  }
+  .footer-cols ul{ display:flex; flex-direction:column; gap:10px; }
+  .footer-cols a{ font-size:0.92rem; color:var(--paper); opacity:0.85; transition:opacity .2s ease; }
+  .footer-cols a:hover{ opacity:1; color:var(--signal); }
+  .footer-bottom{ display:flex; flex-direction:column; gap:10px; font-size:0.8rem; color:var(--muted); }
+  @media(min-width:700px){ .footer-bottom{ flex-direction:row; justify-content:space-between; } }
+
+  /* ---------- ADMIN: MODALS ---------- */
+  .modal-overlay{
+    position:fixed; inset:0; z-index:80;
+    background:rgba(10,11,14,0.7); backdrop-filter:blur(6px);
+    display:flex; align-items:center; justify-content:center; padding:20px;
+    opacity:0; pointer-events:none; transition:opacity .25s ease;
+  }
+  .modal-overlay.open{ opacity:1; pointer-events:auto; }
+  .modal-box{
+    background:var(--ink-2); border:1px solid var(--line); border-radius:20px;
+    padding:26px; width:min(420px,100%); max-height:86vh; overflow-y:auto;
+    transform:translateY(12px); transition:transform .25s ease;
+  }
+  .modal-overlay.open .modal-box{ transform:translateY(0); }
+  .admin-box{ width:min(560px,100%); }
+  .modal-box h3{ font-family:'Sora', sans-serif; font-size:1.2rem; margin:0; }
+  .modal-sub{ color:var(--muted); font-size:0.88rem; margin:8px 0 18px; }
+  .modal-box input[type="password"], .modal-box input[type="text"], .modal-box input[type="number"], .modal-box textarea{
+    width:100%; background:var(--ink); border:1px solid var(--line); color:var(--paper);
+    padding:12px 14px; border-radius:10px; font-family:inherit; font-size:0.92rem;
+  }
+  .modal-error{ color:var(--signal); font-size:0.82rem; margin-top:10px; display:none; }
+  .modal-error.show{ display:block; }
+  .modal-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:20px; }
+
+  .admin-note{
+    font-size:0.8rem; color:var(--muted); background:var(--ink);
+    border:1px solid var(--line); padding:11px 13px; border-radius:10px; margin:16px 0;
+  }
+  .admin-add-btn{ width:100%; padding:13px; border-radius:12px; }
+  .admin-list{ display:flex; flex-direction:column; gap:10px; margin-top:18px; max-height:38vh; overflow-y:auto; }
+  .admin-row{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background:var(--ink); border:1px solid var(--line); border-radius:12px; padding:10px 12px;
+  }
+  .admin-row-left{ display:flex; align-items:center; gap:12px; min-width:0; }
+  .admin-row-left .app-icon{ width:38px; height:38px; font-size:1rem; border-radius:11px; }
+  .admin-row-name{ font-weight:600; font-size:0.9rem; display:flex; align-items:center; gap:6px; }
+  .featured-badge{
+    font-family:'JetBrains Mono', monospace; font-size:0.6rem; color:var(--mint);
+    border:1px solid var(--line); padding:2px 6px; border-radius:999px;
+  }
+  .admin-row-sub{ font-size:0.74rem; color:var(--muted); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .admin-row-actions{ display:flex; gap:6px; flex-shrink:0; }
+  .admin-footer{ margin-top:22px; border-top:1px solid var(--line); padding-top:18px; display:flex; flex-direction:column; gap:14px; }
+  .admin-pw-change summary{ cursor:pointer; font-size:0.85rem; color:var(--muted); }
+  .pw-change-row{ display:flex; gap:8px; margin-top:10px; }
+  .pw-change-row input{ flex:1; }
+
+  .form-grid{ display:flex; flex-direction:column; gap:14px; margin:18px 0; }
+  .form-grid label{ display:flex; flex-direction:column; gap:6px; font-size:0.8rem; color:var(--muted); }
+  .form-row{ display:flex; gap:12px; }
+  .form-row label{ flex:1; }
+  .checkbox-label{ flex-direction:row !important; align-items:center; gap:8px !important; }
+  .checkbox-label input{ width:auto; }
+  input[type="color"]{ padding:3px; height:42px; cursor:pointer; }
+
+  .shake{ animation: shake 0.45s; }
+
+  /* ---------- KEYFRAMES ---------- */
+  @keyframes drop-in{ to{ opacity:1; transform:translateY(0); } }
+  @keyframes fade-up{ to{ opacity:1; transform:translateY(0); } }
+  @keyframes fade-in{ to{ opacity:1; } }
+  @keyframes line-up{ to{ transform:translateY(0); } }
+  @keyframes power-on{
+    0%{ opacity:0; transform:scale(0.92); }
+    60%{ opacity:1; transform:scale(1.015); }
+    100%{ opacity:1; transform:scale(1); }
+  }
+  @keyframes pulse-dot{ 0%,100%{ opacity:1; } 50%{ opacity:0.35; } }
+  @keyframes marquee{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
+  @keyframes float{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-14px); } }
+  @keyframes shake{
+    10%,90%{ transform:translateX(-2px); } 20%,80%{ transform:translateX(4px); }
+    30%,50%,70%{ transform:translateX(-8px); } 40%,60%{ transform:translateX(8px); }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{
+      animation-duration:0.001ms !important;
+      animation-iteration-count:1 !important;
+      transition-duration:0.001ms !important;
+    }
+    .ticker-track{ animation:none; }
+    .hero h1 .line span{ transform:translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="#top" class="logo"><span class="logo-dot"></span>FIRESTORE</a>
+      <div class="nav-links">
+        <a href="#picks">Today</a>
+        <a href="#categories">Categories</a>
+        <a href="#spotlight">Spotlight</a>
+        <a href="#new">New & Notable</a>
+      </div>
+      <div class="nav-actions">
+        <button class="icon-btn" id="adminTrigger" aria-label="Admin access" title="Admin access">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+        </button>
+        <button class="icon-btn menu-btn" id="menuOpen" aria-label="Open menu">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobileMenu">
+    <div class="mobile-menu-top">
+      <span class="logo"><span class="logo-dot"></span>FIRESTORE</span>
+      <button class="icon-btn" id="menuClose" aria-label="Close menu">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <ul>
+      <li><a href="#picks">Today</a></li>
+      <li><a href="#categories">Categories</a></li>
+      <li><a href="#spotlight">Spotlight</a></li>
+      <li><a href="#new">New & Notable</a></li>
+    </ul>
+  </div>
+
+  <main id="top">
+    <!-- HERO -->
+    <header class="hero">
+      <div class="wrap">
+        <span class="eyebrow"><span class="blink"></span>CURATED DAILY</span>
+        <h1>
+          <span class="line"><span>Apps worth</span></span>
+          <span class="line"><span>the install.</span></span>
+        </h1>
+        <p class="lede">No charts to game, no ads to dodge. Firestore by Matrix is a small stand run by people who actually open every app before it goes on the shelf.</p>
+        <form class="search-bar" onsubmit="return false;">
+          <input type="text" placeholder="Search apps…" aria-label="Search apps">
+          <button class="btn-primary" type="submit">Search</button>
+        </form>
+      </div>
+      <div class="ticker" aria-hidden="true">
+        <div class="ticker-track">
+          <span class="ticker-chip">Productivity</span>
+          <span class="ticker-chip">Creative</span>
+          <span class="ticker-chip">Health & Fitness</span>
+          <span class="ticker-chip">Games</span>
+          <span class="ticker-chip">Finance</span>
+          <span class="ticker-chip">Utilities</span>
+          <span class="ticker-chip">Productivity</span>
+          <span class="ticker-chip">Creative</span>
+          <span class="ticker-chip">Health & Fitness</span>
+          <span class="ticker-chip">Games</span>
+          <span class="ticker-chip">Finance</span>
+          <span class="ticker-chip">Utilities</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- TODAY'S PICKS (data-driven) -->
+    <section id="picks">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="section-eyebrow">Today's Picks</span>
+          <h2>Hand-picked, every morning.</h2>
+          <p>One editor, six coffees, a fresh shortlist by 7am. Here's what made the cut today.</p>
+        </div>
+        <div class="bento" id="bentoGrid"></div>
+      </div>
+    </section>
+
+    <!-- NEW & NOTABLE CAROUSEL (data-driven) -->
+    <section id="new">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="section-eyebrow">New This Week</span>
+          <h2>Fresh off the shelf.</h2>
+          <p>Swipe through. The rest of the catalog, all opened and tested by hand.</p>
+        </div>
+      </div>
+      <div class="carousel" id="carouselTrack"></div>
+    </section>
+
+    <!-- SPOTLIGHT -->
+    <section id="spotlight">
+      <div class="wrap spotlight">
+        <div class="phone reveal">
+          <div class="phone-screen">
+            <div class="phone-blob b1"></div>
+            <div class="phone-blob b2"></div>
+            <div class="phone-blob b3"></div>
+          </div>
+        </div>
+        <div class="spotlight-text reveal">
+          <span class="section-eyebrow">App of the Month</span>
+          <h2>Driftwood remembers the story, not just the shot.</h2>
+          <p>Most camera rolls are a junk drawer. Driftwood quietly groups your photos into the trips, evenings, and small moments they actually belong to — no albums to manage by hand.</p>
+          <ul class="feature-list">
+            <li>Groups photos by place and pace, not just date</li>
+            <li>Surfaces a "one year ago" moment each morning</li>
+            <li>Works fully offline — nothing leaves your phone</li>
+          </ul>
+          <button class="btn-primary get-btn" style="padding:14px 26px; border-radius:14px;">Get Driftwood — Free</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- CATEGORIES -->
+    <section id="categories">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="section-eyebrow">Browse</span>
+          <h2>Find your aisle.</h2>
+        </div>
+        <div class="cat-grid">
+          <div class="cat-tile reveal"><div class="cat-glyph" style="background:linear-gradient(135deg,#2563EB,#06B6D4)"></div><h3>Productivity</h3><span>1,204 apps</span></div>
+          <div class="cat-tile reveal"><div class="cat-glyph" style="background:linear-gradient(135deg,#F472B6,#FB923C)"></div><h3>Creative</h3><span>842 apps</span></div>
+          <div class="cat-tile reveal"><div class="cat-glyph" style="background:linear-gradient(135deg,#10B981,#34D399)"></div><h3>Health & Fitness</h3><span>967 apps</span></div>
+          <div class="cat-tile reveal"><div class="cat-glyph" style="background:linear-gradient(135deg,#F59E0B,#EF4444)"></div><h3>Games</h3><span>2,318 apps</span></div>
+          <div class="cat-tile reveal"><div class="cat-glyph" style="background:linear-gradient(135deg,#0EA5E9,#6366F1)"></div><h3>Finance</h3><span>531 apps</span></div>
+          <div class="cat-tile reveal"><div class="cat-glyph" style="background:linear-gradient(135deg,#FF6A3D,#FFB23D)"></div><h3>Utilities</h3><span>1,090 apps</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATS -->
+    <div class="stats">
+      <div class="wrap stats-grid">
+        <div class="stat reveal"><b>12,406</b><span>Apps live</span></div>
+        <div class="stat reveal"><b>248K</b><span>Daily opens</span></div>
+        <div class="stat reveal"><b>4.9</b><span>Avg. editor rating</span></div>
+        <div class="stat reveal"><b>07:00</b><span>New picks daily</span></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="wrap">
+      <div class="footer-top reveal">
+        <div>
+          <h2>Firestore never closes.</h2>
+          <p>One good app in your inbox, every Friday. No spam, no charts.</p>
+        </div>
+        <form class="newsletter" onsubmit="return false;">
+          <input type="email" placeholder="you@email.com" aria-label="Email address">
+          <button class="btn-primary" type="submit">Subscribe</button>
+        </form>
+      </div>
+      <div class="footer-cols">
+        <div><h4>Browse</h4><ul><li><a href="#picks">Today</a></li><li><a href="#categories">Categories</a></li><li><a href="#new">New & Notable</a></li></ul></div>
+        <div><h4>Company</h4><ul><li><a href="#">About</a></li><li><a href="#">Journal</a></li><li><a href="#">Careers</a></li></ul></div>
+        <div><h4>Legal</h4><ul><li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li></ul></div>
+        <div><h4>Connect</h4><ul><li><a href="#">Twitter / X</a></li><li><a href="#">Instagram</a></li></ul></div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 Firestore by Matrix. Every app opened by hand.</span>
+        <span class="mono">Built with care · no trackers</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ADMIN: SIGN-IN MODAL -->
+  <div class="modal-overlay" id="pwModal">
+    <div class="modal-box">
+      <h3>Admin Sign In</h3>
+      <p class="modal-sub">Sign in with the admin account to manage app listings.</p>
+      <input type="email" id="emailInput" placeholder="Email" autocomplete="off" style="margin-bottom:10px;">
+      <input type="password" id="pwInput" placeholder="Password" autocomplete="off">
+      <p class="modal-error" id="pwError">Incorrect email or password. Try again.</p>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="pwCancel">Cancel</button>
+        <button class="btn-primary" id="pwSubmit">Sign In</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN: PANEL -->
+  <div class="modal-overlay" id="adminPanel">
+    <div class="modal-box admin-box">
+      <h3>Manage Apps</h3>
+      <p class="admin-note">Signed in with Firebase Authentication — write access requires a real login, not just a page gate. Add or remove admin accounts from your Firebase Console under Authentication → Users.</p>
+      <button class="btn-primary admin-add-btn" id="addAppBtn">+ Add New App</button>
+      <div class="admin-list" id="adminList"></div>
+      <div class="admin-footer">
+        <button class="btn-ghost" id="resetAppsBtn">Reset to default apps</button>
+        <button class="btn-ghost" id="logoutBtn">Log out</button>
+        <button class="btn-ghost" id="adminCloseBtn">Close panel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN: APP FORM MODAL -->
+  <div class="modal-overlay" id="appFormModal">
+    <div class="modal-box">
+      <h3 id="appFormTitle">Add App</h3>
+      <div class="form-grid">
+        <label>Name <input type="text" id="f_name" maxlength="40"></label>
+        <label>Category <input type="text" id="f_category" maxlength="24"></label>
+        <label>Description <textarea id="f_description" maxlength="220" rows="3"></textarea></label>
+        <div class="form-row">
+          <label>Rating (0–5) <input type="number" id="f_rating" min="0" max="5" step="0.1" value="4.5"></label>
+          <label>Size <input type="text" id="f_size" placeholder="24 MB"></label>
+        </div>
+        <label>Price <input type="text" id="f_price" placeholder="Free or $4.99" value="Free"></label>
+        <label>Download Link <input type="url" id="f_downloadUrl" placeholder="https://example.com/your-file.apk"></label>
+        <label>Logo Image URL (optional) <input type="url" id="f_logoUrl" placeholder="https://example.com/logo.png"></label>
+        <div class="form-row">
+          <label class="checkbox-label"><input type="checkbox" id="f_featured"> Feature this app</label>
+        </div>
+        <div class="form-row">
+          <label>Color 1 <input type="color" id="f_color1" value="#FF6A3D"></label>
+          <label>Color 2 <input type="color" id="f_color2" value="#FFB23D"></label>
+        </div>
+      </div>
+      <p class="modal-error" id="formError">Please fill in at least a name and description.</p>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="formCancel">Cancel</button>
+        <button class="btn-primary" id="formSave">Save App</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    /* ---------------- FIREBASE ---------------- */
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+    import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAFJBKnvJ1NZ-rdbiKVVa09X_BDZsfyLEE",
+      authDomain: "firestore-admin-c9abf.firebaseapp.com",
+      databaseURL: "https://firestore-admin-c9abf-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "firestore-admin-c9abf",
+      storageBucket: "firestore-admin-c9abf.firebasestorage.app",
+      messagingSenderId: "750595048521",
+      appId: "1:750595048521:web:332b082c0076947659eb98"
+    };
+    const fbApp = initializeApp(firebaseConfig);
+    const auth = getAuth(fbApp);
+    const db = getDatabase(fbApp);
+    const APPS_PATH = 'kioskApps';
+
+    /* ---------------- DATA ---------------- */
+    const DEFAULT_APPS = [
+      {id:'tideline', name:'Tideline', category:'Journal', description:"A slow, tide-paced journal. Write when the mood pulls you in, not on a streak's schedule.", rating:4.9, size:'38 MB', price:'Free', color1:'#2563EB', color2:'#06B6D4', featured:true, downloadUrl:'', logoUrl:''},
+      {id:'plinth', name:'Plinth', category:'Notes', description:'Notes that link themselves. A second brain without the setup tax.', rating:4.7, size:'24 MB', price:'Free', color1:'#7C5CFC', color2:'#C084FC', featured:false, downloadUrl:'', logoUrl:''},
+      {id:'quarry', name:'Quarry', category:'Puzzle', description:'Chip away at a stone block, one tap at a time. Oddly meditative.', rating:4.8, size:'61 MB', price:'$2.99', color1:'#F59E0B', color2:'#EF4444', featured:false, downloadUrl:'', logoUrl:''},
+      {id:'hum', name:'Hum', category:'Focus', description:'Ambient sound that adapts to your typing speed. Sounds strange. Works.', rating:4.6, size:'19 MB', price:'Free', color1:'#10B981', color2:'#34D399', featured:false, downloadUrl:'', logoUrl:''},
+      {id:'switchback', name:'Switchback', category:'Cycling', description:"Route planning that actually avoids the hill you're dreading.", rating:4.5, size:'33 MB', price:'Free', color1:'#FF6A3D', color2:'#FFB23D', featured:false, downloadUrl:'', logoUrl:''},
+      {id:'forager', name:'Forager', category:'Food', description:"Turns your half-empty fridge into tonight's recipe.", rating:4.7, size:'28 MB', price:'Free', color1:'#84CC16', color2:'#4D7C0F', featured:false, downloadUrl:'', logoUrl:''},
+      {id:'ledger-vine', name:'Ledger & Vine', category:'Finance', description:'Budgeting that reads like a notebook, not a bank statement.', rating:4.8, size:'21 MB', price:'$4.99', color1:'#0EA5E9', color2:'#6366F1', featured:false, downloadUrl:'', logoUrl:''},
+      {id:'nightshift', name:'Nightshift', category:'Sleep', description:'Tracks sleep without strapping a screen to your wrist.', rating:4.6, size:'17 MB', price:'Free', color1:'#312E81', color2:'#6D28D9', featured:false, downloadUrl:'', logoUrl:''},
+      {id:'sundial', name:'Sundial', category:'Habits', description:'Habit tracking with one rule: no red Xs, ever.', rating:4.9, size:'15 MB', price:'Free', color1:'#FBBF24', color2:'#F97316', featured:false, downloadUrl:'', logoUrl:''},
+      {id:'driftwood', name:'Driftwood', category:'Camera', description:"A camera roll that organizes itself by the story it's telling.", rating:4.9, size:'45 MB', price:'Free', color1:'#F472B6', color2:'#FB923C', featured:false, downloadUrl:'', logoUrl:''},
+    ];
+
+    let apps = [];
+    let isFirstRender = true;
+    let editingId = null;
+
+    function escapeHTML(str){
+      return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+    function slugify(str){
+      return (str.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 'app') + '-' + Date.now().toString(36).slice(-5);
+    }
+
+    /* ---------------- DATABASE ---------------- */
+    async function loadApps(){
+      try{
+        const snap = await get(ref(db, APPS_PATH));
+        if (snap.exists()){
+          const obj = snap.val();
+          apps = Object.keys(obj).map(id => ({ id, ...obj[id] }));
+        } else {
+          apps = DEFAULT_APPS.slice();
+          await persistApps();
+        }
+      }catch(e){
+        console.error('Could not load apps from Firebase', e);
+        apps = DEFAULT_APPS.slice();
+      }
+    }
+    async function persistApps(){
+      try{
+        const obj = {};
+        apps.forEach(a => { const { id, ...rest } = a; obj[id] = rest; });
+        await set(ref(db, APPS_PATH), obj);
+      }catch(e){
+        console.error('Save failed', e);
+        alert('Could not save changes — make sure you are signed in and check your connection.');
+      }
+    }
+
+    /* ---------------- RENDER: STOREFRONT ---------------- */
+    function appIconHTML(app){
+      const letter = escapeHTML(app.name.charAt(0).toUpperCase());
+      const gradient = `background:linear-gradient(135deg, ${app.color1}, ${app.color2})`;
+      if (app.logoUrl){
+        const safeUrl = escapeHTML(app.logoUrl);
+        return `<div class="app-icon" style="${gradient}; position:relative; overflow:hidden;">
+          <span style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center;">${letter}</span>
+          <img src="${safeUrl}" alt="" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; border-radius:inherit;" onerror="this.remove()">
+        </div>`;
+      }
+      return `<div class="app-icon" style="${gradient}">${letter}</div>`;
+    }
+    function getBtnHTML(app){
+      if (app.downloadUrl){
+        return `<a class="get-btn" href="${escapeHTML(app.downloadUrl)}" target="_blank" rel="noopener noreferrer">Get</a>`;
+      }
+      return `<button class="get-btn" data-no-link="1">Get</button>`;
+    }
+    function cardHTML(app, opts){
+      opts = opts || {};
+      const featureClass = opts.feature ? ' card-feature' : '';
+      const dStyle = isFirstRender ? `style="--d:${opts.d||0}"` : `style="opacity:1;transform:none;animation:none"`;
+      return `
+      <article class="card${featureClass}" ${dStyle} data-id="${app.id}">
+        <div class="card-top">
+          ${appIconHTML(app)}
+          <div>
+            <div class="card-name">${escapeHTML(app.name)}</div>
+            <span class="card-tag">${escapeHTML(app.category)}</span>
+          </div>
+        </div>
+        <p class="card-desc">${escapeHTML(app.description)}</p>
+        <div class="card-meta">
+          <span>★ ${Number(app.rating).toFixed(1)} · ${escapeHTML(app.size)} · ${escapeHTML(app.price)}</span>
+          ${getBtnHTML(app)}
+        </div>
+      </article>`;
+    }
+    function renderStorefront(){
+      const bento = document.getElementById('bentoGrid');
+      const newSection = document.getElementById('new');
+      const carousel = document.getElementById('carouselTrack');
+
+      if(!apps.length){
+        bento.innerHTML = `<div class="empty-state">No apps yet — open the admin panel to add your first one.</div>`;
+        newSection.style.display = 'none';
+        return;
+      }
+      newSection.style.display = '';
+
+      const featured = apps.find(a => a.featured) || apps[0];
+      const rest = apps.filter(a => a.id !== featured.id);
+      const bentoApps = [featured, ...rest.slice(0,4)];
+      const carouselApps = rest.slice(4);
+
+      bento.innerHTML = bentoApps.map((a,i) => cardHTML(a, {feature:i===0, d:i})).join('');
+
+      if(carouselApps.length){
+        newSection.style.display = '';
+        carousel.parentElement.style.display = '';
+        carousel.innerHTML = carouselApps.map(a => cardHTML(a)).join('');
+      } else {
+        carousel.innerHTML = `<div class="empty-state" style="margin:0 22px;">Add a 6th app to start a New This Week row.</div>`;
+      }
+      isFirstRender = false;
+    }
+
+    /* ---------------- RENDER: ADMIN LIST ---------------- */
+    function adminRowHTML(app){
+      return `
+      <div class="admin-row" data-id="${app.id}">
+        <div class="admin-row-left">
+          ${appIconHTML(app)}
+          <div style="min-width:0;">
+            <div class="admin-row-name">${escapeHTML(app.name)} ${app.featured ? '<span class="featured-badge">Featured</span>' : ''} ${!app.downloadUrl ? '<span class="featured-badge" style="color:var(--signal);">No link</span>' : ''}</div>
+            <div class="admin-row-sub mono">${escapeHTML(app.category)} · ★ ${Number(app.rating).toFixed(1)} · ${escapeHTML(app.price)}</div>
+          </div>
+        </div>
+        <div class="admin-row-actions">
+          <button class="icon-btn small edit-app-btn" data-id="${app.id}" aria-label="Edit ${escapeHTML(app.name)}">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          </button>
+          <button class="icon-btn small delete-app-btn" data-id="${app.id}" aria-label="Delete ${escapeHTML(app.name)}">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          </button>
+        </div>
+      </div>`;
+    }
+    function renderAdminList(){
+      const list = document.getElementById('adminList');
+      list.innerHTML = apps.length
+        ? apps.map(adminRowHTML).join('')
+        : `<div class="empty-state">No apps yet.</div>`;
+    }
+
+    /* ---------------- MODAL HELPERS ---------------- */
+    function openModal(id){ document.getElementById(id).classList.add('open'); }
+    function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+    /* ---------------- INIT ---------------- */
+    (async () => {
+      await loadApps();
+      renderStorefront();
+
+      // Mobile menu
+      const menuOpen = document.getElementById('menuOpen');
+      const menuClose = document.getElementById('menuClose');
+      const mobileMenu = document.getElementById('mobileMenu');
+      menuOpen.addEventListener('click', () => mobileMenu.classList.add('open'));
+      menuClose.addEventListener('click', () => mobileMenu.classList.remove('open'));
+      mobileMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => mobileMenu.classList.remove('open')));
+
+      // Scroll reveal
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting){ entry.target.classList.add('is-visible'); io.unobserve(entry.target); }
+        });
+      }, { threshold: 0.15 });
+      document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+      // Get button micro-interaction (event delegation, works for re-rendered cards)
+      document.body.addEventListener('click', (e) => {
+        const btn = e.target.closest('.get-btn');
+        if (!btn || btn.closest('.modal-box')) return;
+        if (btn.dataset.noLink){
+          e.preventDefault();
+          alert('No download link has been added for this app yet. Add one from the admin panel.');
+          return;
+        }
+        if (btn.classList.contains('got')) return;
+        const original = btn.textContent;
+        btn.textContent = '✓ Got it';
+        btn.classList.add('got');
+        setTimeout(() => { btn.textContent = original; btn.classList.remove('got'); }, 2200);
+      });
+
+      /* ---- ADMIN: sign in ---- */
+      const pwModal = document.getElementById('pwModal');
+      const emailInput = document.getElementById('emailInput');
+      const pwInput = document.getElementById('pwInput');
+      const pwError = document.getElementById('pwError');
+
+      document.getElementById('adminTrigger').addEventListener('click', () => {
+        emailInput.value = '';
+        pwInput.value = '';
+        pwError.classList.remove('show');
+        openModal('pwModal');
+        setTimeout(() => emailInput.focus(), 100);
+      });
+      document.getElementById('pwCancel').addEventListener('click', () => closeModal('pwModal'));
+      async function trySignIn(){
+        try{
+          await signInWithEmailAndPassword(auth, emailInput.value.trim(), pwInput.value);
+          closeModal('pwModal');
+          renderAdminList();
+          openModal('adminPanel');
+        }catch(e){
+          console.error('Sign-in failed', e);
+          pwError.classList.add('show');
+          const box = pwModal.querySelector('.modal-box');
+          box.classList.remove('shake'); void box.offsetWidth; box.classList.add('shake');
+        }
+      }
+      document.getElementById('pwSubmit').addEventListener('click', trySignIn);
+      pwInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') trySignIn(); });
+      emailInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') trySignIn(); });
+
+      /* ---- ADMIN: panel ---- */
+      document.getElementById('adminCloseBtn').addEventListener('click', () => closeModal('adminPanel'));
+      document.getElementById('logoutBtn').addEventListener('click', async () => {
+        await signOut(auth);
+        closeModal('adminPanel');
+      });
+
+      document.getElementById('resetAppsBtn').addEventListener('click', async () => {
+        if (!confirm('Reset to the 10 default apps? This replaces your current list.')) return;
+        apps = DEFAULT_APPS.slice();
+        await persistApps();
+        renderStorefront();
+        renderAdminList();
+      });
+
+      // Edit / delete via delegation on admin list
+      document.getElementById('adminList').addEventListener('click', async (e) => {
+        const editBtn = e.target.closest('.edit-app-btn');
+        const delBtn = e.target.closest('.delete-app-btn');
+        if (editBtn){ openAppForm(editBtn.dataset.id); }
+        if (delBtn){
+          const app = apps.find(a => a.id === delBtn.dataset.id);
+          if (!app) return;
+          if (!confirm(`Delete "${app.name}"? This can't be undone.`)) return;
+          apps = apps.filter(a => a.id !== delBtn.dataset.id);
+          await persistApps();
+          renderStorefront();
+          renderAdminList();
+        }
+      });
+
+      /* ---- ADMIN: app form ---- */
+      const f_name = document.getElementById('f_name');
+      const f_category = document.getElementById('f_category');
+      const f_description = document.getElementById('f_description');
+      const f_rating = document.getElementById('f_rating');
+      const f_size = document.getElementById('f_size');
+      const f_price = document.getElementById('f_price');
+      const f_downloadUrl = document.getElementById('f_downloadUrl');
+      const f_logoUrl = document.getElementById('f_logoUrl');
+      const f_featured = document.getElementById('f_featured');
+      const f_color1 = document.getElementById('f_color1');
+      const f_color2 = document.getElementById('f_color2');
+      const formError = document.getElementById('formError');
+
+      function openAppForm(id){
+        editingId = id || null;
+        formError.classList.remove('show');
+        if (editingId){
+          const app = apps.find(a => a.id === editingId);
+          document.getElementById('appFormTitle').textContent = 'Edit App';
+          f_name.value = app.name; f_category.value = app.category; f_description.value = app.description;
+          f_rating.value = app.rating; f_size.value = app.size; f_price.value = app.price;
+          f_downloadUrl.value = app.downloadUrl || '';
+          f_logoUrl.value = app.logoUrl || '';
+          f_featured.checked = !!app.featured; f_color1.value = app.color1; f_color2.value = app.color2;
+        } else {
+          document.getElementById('appFormTitle').textContent = 'Add App';
+          f_name.value = ''; f_category.value = ''; f_description.value = '';
+          f_rating.value = 4.5; f_size.value = ''; f_price.value = 'Free';
+          f_downloadUrl.value = '';
+          f_logoUrl.value = '';
+          f_featured.checked = false; f_color1.value = '#FF6A3D'; f_color2.value = '#FFB23D';
+        }
+        openModal('appFormModal');
+        setTimeout(() => f_name.focus(), 100);
+      }
+      document.getElementById('addAppBtn').addEventListener('click', () => openAppForm(null));
+      document.getElementById('formCancel').addEventListener('click', () => closeModal('appFormModal'));
+
+      document.getElementById('formSave').addEventListener('click', async () => {
+        const name = f_name.value.trim();
+        const description = f_description.value.trim();
+        if (!name || !description){ formError.classList.add('show'); return; }
+        formError.classList.remove('show');
+
+        let downloadUrl = f_downloadUrl.value.trim();
+        if (downloadUrl && !/^https?:\/\//i.test(downloadUrl)){ downloadUrl = 'https://' + downloadUrl; }
+        let logoUrl = f_logoUrl.value.trim();
+        if (logoUrl && !/^https?:\/\//i.test(logoUrl)){ logoUrl = 'https://' + logoUrl; }
+
+        const data = {
+          name, category: f_category.value.trim() || 'App',
+          description,
+          rating: Math.max(0, Math.min(5, parseFloat(f_rating.value) || 0)),
+          size: f_size.value.trim() || '—',
+          price: f_price.value.trim() || 'Free',
+          downloadUrl,
+          logoUrl,
+          featured: f_featured.checked,
+          color1: f_color1.value, color2: f_color2.value,
+        };
+
+        if (data.featured){ apps.forEach(a => a.featured = false); }
+
+        if (editingId){
+          const idx = apps.findIndex(a => a.id === editingId);
+          if (idx > -1) apps[idx] = { ...apps[idx], ...data };
+        } else {
+          apps.push({ id: slugify(name), ...data });
+        }
+
+        await persistApps();
+        renderStorefront();
+        renderAdminList();
+        closeModal('appFormModal');
+      });
+
+      // Close modals on backdrop click
+      [pwModal, document.getElementById('adminPanel'), document.getElementById('appFormModal')].forEach(overlay => {
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('open'); });
+      });
+    })();
+  </script>
+</body>
+</html>
